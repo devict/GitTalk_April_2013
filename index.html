@@ -1,0 +1,1083 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+
+        <title>Git: From Init Through Commit</title>
+
+        <meta name="description" content="Git has rapidly become the gold standard for version control systems. With sites such as GitHub and Gitorious, the barrier to worldwide collaboration has essentially become a thing of the past. As git's popularity continues to grow, there is no better time to start utilizing it! But where does one begin?">
+        <meta name="author" content="Matthew M. Keeler">
+
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+        <link rel="stylesheet" href="css/reveal.min.css">
+        <link rel="stylesheet" href="css/theme/default.css" id="theme">
+
+        <!-- For syntax highlighting -->
+        <link rel="stylesheet" href="lib/css/monokai.css">
+        <link rel="stylesheet" href="css/print/pdf.css" type="text/css" media="print">
+
+        <!-- If the query includes 'print-pdf', use the PDF print sheet -->
+        <script>
+            document.write( '<link rel="stylesheet" href="css/print/' + ( window.location.search.match( /print-pdf/gi ) ? 'pdf' : 'paper' ) + '.css" type="text/css" media="print">' );
+        </script>
+
+        <!--[if lt IE 9]>
+        <script src="lib/js/html5shiv.js"></script>
+        <![endif]-->
+    </head>
+    <body>
+        <div class="reveal">
+            <div class="slides">
+
+                <section>
+                    <h1>Git</h1>
+                    <h2>From Init Through Commit</h2>
+                    <p>
+                        <small><a href="http://tortugas-llc.com">Matthew M. Keeler</a> / <a href="http://twitter.com/keelerm84">@keelerm84</a></small>
+                    </p>
+                </section>
+
+                <!--History-->
+                <section>
+                    <section>
+                        <h2>Why VCS?</h2>
+                        <ul>
+                            <li class="fragment">Reversibility</li>
+                            <li class="fragment">Concurrency</li>
+                            <li class="fragment">Annotation</li>
+                            <li class="fragment">Peer Pressure</li>
+                        </ul>
+                    </section>
+
+                    <section>
+                        <h2>LOCO vs MOM</h2>
+                        <ul>
+                            <li>Lock On Checkout (RCS, SCCS)</li> 
+                            <li>
+                                Merge On Modify
+                                <ul>
+                                    <li>Merge Before Commit (CVS, Subversion)</li>
+                                    <li>Commit Before Merge (Bazaar, Mercurial, Git)</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </section>
+
+                    <section>
+                        <h2>Centralized vs Decentralized</h2> 
+                        <ul>
+                            <li>Centralized VCS have a single server against which developers interact</li>
+                            <li>Decentralized VCS give each user a complete copy of the repository</li>
+                        </ul>
+                    </section>
+                </section>
+
+                <section>
+                    <section>
+                        <h1>Where Did Git Come From?</h1>
+                    </section>
+
+                    <section>
+                        <h1>This Guy</h1>
+                        <img src="./images/linus.jpg">
+                    </section>
+
+                    <section>
+                        <h2>Linux Kernel Maintenance</h2>
+                        <ul>
+                            <li>Kernel was originally managed by email patches</li>
+                            <li>Started using BitKeeper in 2002</li>
+                            <li>In 2005, BitKeeper revoked its free status</li>
+                            <li class="fragment">Work on Git started on April 3, 2005</li>
+                            <li class="fragment">Project officially announced April 6, 2005</li>
+                            <li class="fragment">Self-hosting on April 7, 2005</li>
+                        </ul>
+                    </section>
+
+                    <section>
+                        <h2>Core Values</h2>
+                        <ul>
+                            <li>Non-linear development</li>
+                            <li>Decentralized</li>
+                            <li>Can handle large scale projects (like the kernel)</li>
+                            <li>Cryptographically secure (use of SHA1 hashing)</li>
+                        </ul>
+                    </section>
+                </section>
+                <!--Introducation-->
+                <section>
+                    <h2>Is It Complicated?</h2>
+                    <p>You'll understand git when ... </p>
+                    <ul>
+                        <li class="fragment">You realize it is a directed acyclic graph.</li>
+                        <li class="fragment">You realize that branches are homeomorphic endofunctors mapping submanifolds of a Hilbert space.</li>
+                        <li class="fragment">You've finished this presentation (hopefully).</li>
+                    </ul>
+                </section>
+                <!--Config-->
+                <section>
+                    <section>
+                        <h2>Config</h2>
+                        <p>The configuration controls various aspects of git, including</p>
+                        <ul>
+                            <li>Author Name &amp; Email</li> 
+                            <li>Various color settings</li>
+                            <li>Preferred editor</li>
+                            <li>Pager</li>
+                            <li>External Merge Tools</li>
+                            <li>Whitespace and Line endings</li>
+                            <li>... and much more</li>
+                        </ul>
+                    </section>
+
+                    <section>
+                        <h2>3 Config Files</h2>
+                        <ul>
+                            <li>Repository Specific
+                                <ul>
+                                    <li><code>git config</code></li>
+                                    <li>Stored in .git/config</li>
+                                </ul>
+                            </li>
+                            <li>User Specific
+                                <ul>
+                                    <li><code>git config --global</code></li>
+                                    <li>Stored in ~/.gitconfig</li>
+                                </ul>
+                            </li>
+                            <li>System Wide
+                                <ul>
+                                    <li><code>git config --system</code></li>
+                                    <li>Stored in /etc/gitconfig</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </section>
+
+                    <section>
+                        <h2>Sane Defaults</h2>
+                        <pre><code class="bash">$ git config --global author.name 'Matthew M. Keeler'
+$ git config --global author.email 'keelerm@tortugas-llc.com'
+$ git config --global color.ui auto
+$ git config --global core.editor vim # or emacs</code></pre>
+                        <p>Omit the <code>--global</code> flag to override these settings on a per repository basis.</p>
+                    </section>
+                </section>
+                <!--Init-->
+                <section>
+                    <section>
+                        <h2>Let's Start a Repo</h2>
+                        <p>Incredibly lower barrier to entry.</p>
+                        <pre><code class="bash">$ mkdir /path/to/project
+$ cd /path/to/project
+$ git init</code></pre>
+                    </section>
+
+                    <section>
+                        <h2>What Does That Give Us?</h2>
+                        <pre><code class="bash">$ ls -a
+.  ..  .git
+
+$ ls -a .git
+.  ..  branches  config  description  HEAD  hooks  info  objects  refs</code></pre>
+                    </section>
+                </section>
+                <!--Status-->
+                <section>
+                    <section>
+                        <h2>Git Status</h2>
+                        <p></p>
+                        <ul>
+                            <li>Allows you to review the state of the repository. </li>
+                            <li>Files aren't tracked by git automatically.  They must be staged</li>
+                            <li>Once tracked, git will notice changes, but you must specify which changes to commit</li>
+                            <li>You can commit portions of changes, so a file may exist in multiple stages.</li>
+                        </ul>
+                    </section>
+
+                    <section>
+                        <h2>Staging</h2>
+                        <pre><code class="bash">$ git status
+# On branch master
+#
+# Initial commit
+#
+# Changes to be committed:
+#   (use "git rm --cached <file>..." to unstage)
+#
+#   new file:   README.md
+#
+# Changes not staged for commit:
+#   (use "git add <file>..." to update what will be committed)
+#   (use "git checkout -- <file>..." to discard changes in working directory)
+#
+#   modified:   README.md
+#
+# Untracked files:
+#   (use "git add <file>..." to include in what will be committed)
+#
+#   error.log</code></pre>
+                    </section>
+                </section>
+                <!--Diff-->
+                 <section>
+                     <section>
+                         <h2>Review Your Changes</h2> 
+                         <ul>
+                             <li>You can review your changes with the <code>git diff</code> command</li>
+                             <li>Displays changes in the unified diff format</li>
+                             <li>Without any flags, it displays the changes to the unstaged files</li>
+                             <li>Add the <code>--cached</code> flag to show the changes to any staged files</li>
+                         </ul>
+                     </section>
+
+                     <section>
+                         <h2>Common Flags</h2>
+                         <ul>
+                             <li>--cached : Show changes to staged files</li>
+                             <li>--name-only : Show the names of the changed files</li>
+                             <li>--unified=n : Show n lines of context in the diff</li>
+                             <li>--ignore-all-space : Ignore whitespace changes</li>
+                             <li>--word-diff : Show diffs by words instead of by lines</li>
+                         </ul>
+                     </section>
+
+                     <section>
+                        <h2>Standard Diff Example</h2> 
+                        <pre><code class="bash">$ git diff</code></pre>
+                        <pre><code class="diff">diff --git a/lib/downloadproperties.cpp b/lib/downloadproperties.cpp
+index 287de3a..1940e40 100644
+--- a/lib/downloadproperties.cpp
++++ b/lib/downloadproperties.cpp
+@@ -24,15 +24,15 @@ bool DownloadProperties::isAudioDownloadEnabled() {
+ }
+
+ void DownloadProperties::setVideoFormat(QString format) {
+-  videoFormat = format;
++  videoFormat   = format;
+ }
+
+ QString DownloadProperties::getVideoFormat() {
+   return videoFormat;
+ }
+
+-void DownloadProperties::setVideoFormatValue(int format) {
+-  videoFormatValue = format;
++void DownloadProperties::setVideoFormatValue(int video_format) {
++  videoFormatValue = video_format;
+ }</code></pre>
+                     </section>
+
+                     <section>
+                         <h2>Multiple Flag Examples</h2>
+                         <pre><code class="bash">$ git diff -w --unified=0 --word-diff</code></pre>
+                         <pre><code class="diff">diff --git a/lib/downloadproperties.cpp b/lib/downloadproperties.cpp
+index 287de3a..1940e40 100644
+--- a/lib/downloadproperties.cpp
++++ b/lib/downloadproperties.cpp
+@@ -34,2 +34,2 @@ QString DownloadProperties::getVideoFormat() {
+void DownloadProperties::setVideoFormatValue(int [-format)-]{+video_format)+} {
+  videoFormatValue = [-format;-]{+video_format;+}</code></pre>
+                     </section>
+
+                     <section>
+                        <h2>Diffing Ranges</h2>
+                        <ul>
+                            <li>You can review the diffs of a range of commits with <code>git diff SHA1..SHA1</code></li>
+                            <li>You can also select relative to tags or relative to HEAD</li>
+                        </ul>
+                        <pre><code class="bash">$ git diff 1ece66b..d2949c7
+$ git diff v1.8.2.0..v1.8.2.1
+$ git diff HEAD~10..HEAD</code></pre>
+                     </section>
+                 </section>
+                <!--Show-->
+                <section>
+                    <section>
+                        <h2>Show</h2>
+                        <ul>
+                            <li>You can review the diff of any commit by using <code>git show SHA1</code></li>
+                            <li>You can review the diffs of a range of commits with <code>git show SHA1..SHA1</code></li>
+                            <li>You can also select relative to tags or relative to HEAD</li>
+                        </ul>
+                        <pre><code class="bash">$ git show d2949c7
+$ git show 1ece66b..d2949c7
+$ git show v1.8.2.0..v1.8.2.1
+$ git show HEAD~10..HEAD</code></pre>
+                    </section>
+
+                    <section>
+                        <h2>Show vs Diff</h2>
+                        <ul>
+                            <li>The syntax for <code>git show</code> and <code>git diff</code> are very similiar.</li>
+                            <li><code>git show</code> shows the diffs on a per commit basis over the specified range</li>
+                            <li><code>git diff</code> shows the combined difference over the specified range</li>
+                        </ul>
+                    </section>
+                </section>
+                <!--Add-->
+                 <section>
+                     <section>
+                         <h2>Staging Files with Add</h1>
+                         <ul>
+                             <li>Individual files can be added with <code>git add</code></li>
+                             <li>You can also use the add command to stage entire directories</li>
+                             <li>Portions of files can be staged using the patch flag</li>
+                         </ul>
+                     </section>
+
+                     <section>
+                         <h2>Adding Entire File</h2>
+                        <pre><code class="bash">$ git add README.md
+$ git status
+# On branch master
+#
+# Initial commit
+#
+# Changes to be committed:
+#   (use "git rm --cached <file>..." to unstage)
+#
+#   new file:   README.md</code></pre>
+                     </section>
+
+                    <section>
+                        <h2>Add All Files</h2>
+                        <pre><code class="bash">$ git add lib
+$ git status
+# On branch master
+# Changes to be committed:
+#   (use "git reset HEAD <file>..." to unstage)
+#
+#	new file:   lib/downloadproperties.cpp
+#	new file:   lib/downloadproperties.h
+#	new file:   lib/youtubedl.cpp
+#	new file:   lib/youtubedl.h
+#	new file:   lib/youtubefiledownloader.cpp
+#	new file:   lib/youtubefiledownloader.h
+#	new file:   lib/youtubetitleretriever.cpp
+#	new file:   lib/youtubetitleretriever.h
+#	new file:   lib/youtubevideoformatretriever.cpp
+#	new file:   lib/youtubevideoformatretriever.h
+#
+# Untracked files:
+#   (use "git add <file>..." to include in what will be committed)
+#
+#	CMakeLists.txt
+#	build/
+#	main.cpp
+#	res/
+#	ui/
+#	util/</code></pre>
+                    </section>
+
+                    <section>
+                        <h2>Staging Portions of Files</h2>
+                        <p>Once a tracked file has been committed, you can stage modifications in pieces.</p>
+                        <pre><code class="bash">$ git add -p lib/downloadproperties.cpp</code></pre>
+                        <pre><code class="diff">diff --git a/lib/downloadproperties.cpp b/lib/downloadproperties.cpp
+index 287de3a..b74f92b 100644
+--- a/lib/downloadproperties.cpp
++++ b/lib/downloadproperties.cpp
+@@ -7,18 +7,10 @@ DownloadProperties::DownloadProperties(QString url) :
+ DownloadProperties::~DownloadProperties() {
+ }
+
+-void DownloadProperties::enableVideoDownload(bool enable) {
+-  downloadVideo = enable;
+-}
+-
+ bool DownloadProperties::isVideoDownloadEnabled() {
+ return downloadVideo;
+ }
+
+-void DownloadProperties::enableAudioDownload(bool enable) {
+-  downloadAudio = enable;
+-}
+-
+ bool DownloadProperties::isAudioDownloadEnabled() {
+   return downloadAudio;
+ }
+Stage this hunk [y,n,q,a,d,/,j,J,g,s,e,?]?</code></pre>
+                    </section>
+
+                    <section>
+                        <h2>Lots of Options</h2>
+                        <pre><code class="bash">y - stage this hunk
+n - do not stage this hunk
+q - quit; do not stage this hunk nor any of the remaining ones
+a - stage this hunk and all later hunks in the file
+d - do not stage this hunk nor any of the later hunks in the file
+g - select a hunk to go to
+/ - search for a hunk matching the given regex
+j - leave this hunk undecided, see next undecided hunk
+J - leave this hunk undecided, see next hunk
+k - leave this hunk undecided, see previous undecided hunk
+K - leave this hunk undecided, see previous hunk
+s - split the current hunk into smaller hunks
+e - manually edit the current hunk
+? - print help</code></pre>
+                    </section>
+
+                    <section>
+                        <h2>Most Are Self-Explanatory</h2>
+                        <p>What about this option 'e'?</p>
+                        <pre><code class="bash"># ---
+# To remove '-' lines, make them ' ' lines (context).
+# To remove '+' lines, delete them.
+# Lines starting with # will be removed.
+#
+# If the patch applies cleanly, the edited hunk will immediately be
+# marked for staging. If it does not apply cleanly, you will be given
+# an opportunity to edit again. If all lines of the hunk are removed,
+# then the edit is aborted and the hunk is left unchanged.</code></pre>
+                    </section>
+                 </section>
+                <!--Resetting-->
+                <section>
+                    <section>
+                        <h2>Unstaging Files</h2>
+                        <pre><code class="bash">$ git add main.cpp</code></pre>
+                        <pre><code class="bash">$ git status
+# On branch master
+# Changes to be committed:
+#   (use "git reset HEAD <file>..." to unstage)
+#
+#       new file:   main.cpp
+#
+# Untracked files:
+#   (use "git add <file>..." to include in what will be committed)
+#
+#       build/
+#       res/
+#       ui/
+#       util/</code></pre>
+                    </section>
+                    <section>
+                        <h2>Git Reset</h2>
+                        <ul>
+                            <li>When a file is first being tracked, you can remove it from the staging area with <code>git reset</code></li>
+                            <li>Much like <code>git add -p</code> you can reset portions of a file with <code>git reset -p</code></li>
+                        </ul>
+                        <pre><code class="bash">$ git reset HEAD main.cpp
+# On branch master
+# Untracked files:
+#   (use "git add <file>..." to include in what will be committed)
+#
+#       build/
+#       main.cpp
+#       res/
+#       ui/
+#       util/</code></pre>
+                    </section>
+                    <section>
+                        <h2>Git Checkout</h2>
+                        <ul>
+                            <li>When a file has been tracked, you can remove it from the staging area with <code>git checkout</code></li>
+                            <li>Much like <code>git add -p</code> you can reset portions of a file with <code>git checkout -p</code></li>
+                        </ul>
+                        <pre><code class="bash">git status
+# On branch master
+# Untracked files:
+#   (use "git add <file>..." to include in what will be committed)
+#
+#       build/
+#       res/
+#       ui/
+#       util/
+nothing added to commit but untracked files present (use "git add" to track)</code></pre>
+                    </section>
+                </section>
+                <!---.gitignore-->
+                <section>
+                    <section>
+                        <h2>Ignore Files</h2>
+                        <ul>
+                            <li>There may be some files you don't want to ever commit</li>
+                            <li>You could just never <code>git add</code> them, but that's error prone, especially with <code>git add .</code></li>
+                            <li>You could just <code>git reset</code> them, but that's just as error prone</li>
+                            <li>Git provides a better way, through git ignore files</li>
+                        </ul>
+                    </section>
+
+                    <section>
+                        <h2>Git Ignores</h2>
+                        <ul>
+                            <li>Each line in the git ignore file specifies a file or pattern to exclude</li>
+                            <li>
+                                Three options for git ignores
+                                <ul>
+                                    <li>System wide git ignore
+                                        <pre><code class="bash">$ git config --global core.excludesfile '~/.gitignore'</code></pre>
+                                    </li>
+                                    <li>
+                                        Two version of repo specific ignores
+                                        <ul>
+                                            <li>.gitignore which is used to exclude files specific to the project</li>
+                                            <li>.git/info/exclude which is used to exclude files specified to working environment</li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </section>
+                </section>
+                <!--Commit-->
+                <section>
+                    <section>
+                        <h2>Staging Commits</h2>
+                        <p>Once your files have been staged, you need to commit those changes.</p>
+                        <pre><code class="bash">$ git commit</code></pre>
+                        <pre><code class="bash">Initial commit for README.md
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+# On branch master
+#
+# Initial commit
+#
+# Changes to be committed:
+#   (use "git rm --cached <file>..." to unstage)
+#
+#	new file:   README.md
+
+$ git status
+# On branch master
+nothing to commit, working directory clean</code></pre>
+                    </section>
+
+                    <section>
+                        <h2>Committing Con't</h2>
+                        <ul>
+                            <li>
+                                Conventions for commits
+                                <ul>
+                                    <li>First line is a summary, stopping at 80 characters</li>
+                                    <li>Blank Line</li>
+                                    <li>Lines 3+ contain a description of the changes / issue</li>
+                                </ul>
+                            </li>
+                            <li>Various commit options</li>
+                        </ul>
+                        <pre><code class="bash">$ git commit --message='Commit message' # Single line commit message
+$ git commit --all # Automatically add all tracked files and open commit buffer
+$ git commit --amend # Modify the prior commit message
+$ git commit --author='Author &lt;email@example.com&gt;' # Override the author for the commit</code></pre> 
+                    </section>
+                </section>
+                <!--Log-->
+                <section>
+                    <section>
+                        <h2>Reviewing History</h2>
+                        <ul>
+                            <li>At some point, you may want to review your previous commits</li>
+                            <li><code>git log</code> allows you to look over your repository's history</li>
+                            <li>
+                                Some common options
+                                <ul>
+                                    <li>--oneline</li>
+                                    <li>--name-only</li>
+                                    <li>--decorate</li>
+                                    <li>--graph</li>
+                                    <li>--patch</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </section>
+
+                    <section>
+                        <h2>Basic Usage</h2>
+                        <pre><code class="bash">$ git log</code></pre>
+                        <pre><code class="bash">commit d2949c7b3c8a2f0d2cb5c61d99017a1a85a46264
+Author: Junio C Hamano <gitster@pobox.com>
+Date:   Fri Apr 19 13:53:44 2013 -0700
+
+Update draft release notes to 1.8.3
+
+Signed-off-by: Junio C Hamano <gitster@pobox.com>
+
+commit 9526aa461f6c6900cb892a6fe248150ad436c0d5
+Merge: 6ae5d98 1ece66b
+Author: Junio C Hamano <gitster@pobox.com>
+Date:   Fri Apr 19 13:45:04 2013 -0700
+
+Merge branch 'jk/a-thread-only-dies-once'
+
+A regression fix for the logic to detect die() handler triggering
+itself recursively.
+
+* jk/a-thread-only-dies-once:
+run-command: use thread-aware die_is_recursing routine
+usage: allow pluggable die-recursion checks
+
+commit 6ae5d9863ba13b5d138851d8e622c9ed05313966
+Merge: 4407ea4 16a794d
+Author: Junio C Hamano <gitster@pobox.com>
+Date:   Fri Apr 19 13:45:01 2013 -0700
+
+Merge branch 'rt/commentchar-fmt-merge-msg'
+
+A test fix for recent update.
+
+* rt/commentchar-fmt-merge-msg:
+t6200: avoid path mangling issue on Windows</code></pre>
+                    </section>
+
+                    <section>
+                        <h2>--oneline</h2>
+                            <pre><code class="bash">$ git --oneline</code></pre>
+                            <pre><code class="bash">d2949c7 Update draft release notes to 1.8.3
+9526aa4 Merge branch 'jk/a-thread-only-dies-once'
+6ae5d98 Merge branch 'rt/commentchar-fmt-merge-msg'
+4407ea4 Merge branch 'mv/sequencer-pick-error-diag'
+8d41add Merge branch 'tr/copy-revisions-from-stdin'</code></pre>
+                            <pre><code class="bash">$ git --oneline --no-merges</code></pre>
+                            <pre><code class="bash">d2949c7 Update draft release notes to 1.8.3
+1468a58 Update draft release notes to 1.8.3
+16a794d t6200: avoid path mangling issue on Windows
+845241d remote-hg: fix commit messages
+1ece66b run-command: use thread-aware die_is_recursing routine</code></pre>
+                    </section>
+
+                    <section>
+                        <h2>--name-only</h2>
+                        <pre><code class="bash">commit 002d4ce8aa40644698721d59691d38f1df702f4b
+Author: Jeff King <peff@peff.net>
+Date:   Sun Apr 14 15:38:21 2013 -0400
+
+t/test-lib.sh: drop "$test" variable
+
+The $test variable is used as an interim buffer for
+constructing $TRASH_DIRECTORY, and is almost compatible with
+it (the exception being that $test has not been converted to
+an absolute path). Let's get rid of it entirely so that
+:
+
+Update draft release notes to 1.8.3
+
+Signed-off-by: Junio C Hamano <gitster@pobox.com>
+
+Documentation/RelNotes/1.8.3.txt
+
+commit dbda21fa87c1c5495c2f8ced4c40d7dbfa1cdcc2
+Author: Felipe Contreras <felipe.contreras@gmail.com>
+Date:   Sun Apr 14 21:37:49 2013 -0500
+
+branch: colour upstream branches
+
+Otherwise when using 'git branch -vv' it's hard to see them among so
+much output.
+
+Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
+Signed-off-by: Junio C Hamano <gitster@pobox.com>
+
+Documentation/config.txt
+builtin/branch.c</code></pre>
+                    </section>
+
+                    <section>
+                        <h2>--decorate</h2>
+                        <pre><code class="bash">git log --oneline --decorate</code></pre>
+                        <pre><code class="bash">52a3e01 Sync with 1.8.2.1
+5bda18c (tag: v1.8.2.1) Git 1.8.2.1
+5446e33 bundle: Accept prerequisites without commit messages
+c17b651 Update draft release notes to 1.8.3
+0f3d66c Merge branch 'jk/rm-removed-paths'</code></pre>
+                    </section>
+
+                    <section>
+                        <h2>--graph</h2>
+                        <pre><code class="bash">git log --oneline --graph</code></pre>
+                        <pre><code class="bash">* d2949c7 Update draft release notes to 1.8.3
+*   9526aa4 Merge branch 'jk/a-thread-only-dies-once'
+|\  
+| * 1ece66b run-command: use thread-aware die_is_recursing routine
+| * c19a490 usage: allow pluggable die-recursion checks
+* |   6ae5d98 Merge branch 'rt/commentchar-fmt-merge-msg'
+|\ \  
+| * | 16a794d t6200: avoid path mangling issue on Windows
+* | |   4407ea4 Merge branch 'mv/sequencer-pick-error-diag'</code></pre>
+                    </section>
+
+                    <section>
+                        <h2>--patch</h2>
+                        <pre><code class="diff">commit d2949c7b3c8a2f0d2cb5c61d99017a1a85a46264
+Author: Junio C Hamano <gitster@pobox.com>
+Date:   Fri Apr 19 13:53:44 2013 -0700
+
+Update draft release notes to 1.8.3
+
+Signed-off-by: Junio C Hamano <gitster@pobox.com>
+
+diff --git a/Documentation/RelNotes/1.8.3.txt b/Documentation/RelNotes/1.8.3.txt
+index 5031abf..7799cec 100644
+--- a/Documentation/RelNotes/1.8.3.txt
++++ b/Documentation/RelNotes/1.8.3.txt
+@@ -24,7 +24,10 @@ mechanism to make "git add -u" behave as if "git add -u .", i
+important for those who are used to "git add -u" (without pathspec)
+updating the index only for paths in the current subdirectory to start
+training their fingers to explicitly say "git add -u ." when they mean
+-it before Git 2.0 comes.
++it before Git 2.0 comes.  A warning is issued when these commands are
++run without a pathspec and when you have local changes outside the
++current directory, because the behaviour in Git 2.0 will be different
++from today's version in such a situation.</code></pre>
+                    </section>
+                </section>
+                <!--Move and Delete-->
+                <section>
+                    <section>
+                        <h2>Delete A File</h2>
+                        <ul>
+                            <li>Deleting a file is pretty straightforward</li>
+                            <li>
+                            You can use the OS command to remove the file
+                            <pre><code class="bash"># On branch master
+#
+# Changes not staged for commit:
+#   (use "git add/rm <file>..." to update what will be committed)
+#   (use "git checkout -- <file>..." to discard changes in working directory)
+#
+#       deleted:    commit.h
+#
+no changes added to commit (use "git add" and/or "git commit -a")</code></pre>
+                            </li>
+                            <li>As you can see, git still have to be told you want to stage the deletion</li>
+                        </ul> 
+                    </section>
+
+                    <section>
+                        <h2>git rm</h2> 
+                        <ul>
+                            <li><code>git rm</code> to stage a deleted file</li>
+                            <li>Alternatively, it can replace the use of the OS command, doing all operations at once.</li>
+                            <li>
+                                <pre><code class="bash"># On branch master
+#
+# Changes to be committed:
+#   (use "git reset HEAD <file>..." to unstage)
+#
+#       deleted:    commit.h
+#</code></pre>
+                            </li>
+                        </ul>
+                    </section>
+
+                    <section>
+                        <h2>Rename a File</h2>
+                        <ul>
+                            <li>Renaming or moving a file is a little different</li>
+                            <li>You can use the OS command to move the file</li>
+                            <li>
+                                Git still has to be told about this change.
+                                <pre><code class="bash"># On branch master
+# Your branch is ahead of 'origin/master' by 314 commits.
+#
+# Changes not staged for commit:
+#   (use "git add/rm <file>..." to update what will be committed)
+#   (use "git checkout -- <file>..." to discard changes in working directory)
+#
+#       deleted:    commit.h
+#
+# Untracked files:
+#   (use "git add <file>..." to include in what will be committed)
+#
+#       commit_new.h
+no changes added to commit (use "git add" and/or "git commit -a")</code></pre>
+                            </li>
+                            <li>This is tedious and hurts our ability to look at the history of the file</li>
+                        </ul>
+                    </section>
+
+                    <section>
+                        <h2>A Better Way to Move</h2>
+                        <ul>
+                            <li>You can use the <code>git mv file new_path</code></li>
+                            <li>This handles the delete / add steps from above</li>
+                            <li>Also has the added benefit that <code>git log</code> now knows about the move</li>
+                        </ul>
+                        <pre><code class="bash"># On branch master
+# Your branch is ahead of 'origin/master' by 314 commits.
+#
+# Changes to be committed:
+#   (use "git reset HEAD <file>..." to unstage)
+#
+#       renamed:    commit.h -> commit_new.h
+#</code></pre>
+                    </section>
+
+                    <section>
+                        <h2>History with git mv</h2>
+                        <pre><code class="bash">$ git log --oneline -- commit_new.h
+eaceaff Moving commit.h</code></pre>
+                        <pre><code class="bash">$ git log --oneline --follow -- commit_new.h
+eaceaff Moving commit.h
+5a10d23 pretty: save commit encoding from logmsg_reencode if the caller needs it
+41ccfdd Correct common spelling mistakes in comments and tests
+eb307ae merge/pull Check for untrusted good GPG signatures</code></pre>
+                    </section>
+                </section>
+                <!--Unwinding Commits-->
+                <section>
+                    <section>
+                        <h2>Unwinding Commits</h2>
+                        <ul>
+                            <li>There may be times when you want to "rewind" a commit for one reason or another</li>
+                            <li>You may also wish to entirely discard a commit instead of simply modifyit</li>
+                            <li>This is where <code>git reset</code> and <code>git revert</code> come into play</li>
+                            <li>WARNING: You should never modify the history of a repository if those commits have already been shared with the public!</li>
+                        </ul>
+                    </section>
+
+                    <section>
+                        <h2>Git Reset --soft</h2>
+                        <pre><code class="bash">$ git status
+# On branch master
+nothing to commit (working directory clean)</code></pre>
+                        <pre><code class="bash">$ git log --oneline --no-merges
+3e7bb5d Start preparing for 1.8.2.2
+3d88f83 Update draft release notes to 1.8.3
+7f49036 zlib: fix compilation failures with Sun C Compilaer</code></pre>
+                        <pre><code class="bash">$ git reset --soft HEAD~1
+$ git log --oneline --no-merges
+3d88f83 Update draft release notes to 1.8.3
+7f49036 zlib: fix compilation failures with Sun C Compilaer</code></pre>
+                        <pre><code class="bash">$ git status
+# On branch master
+# Your branch is ahead of 'origin/master' by 56 commits.
+#
+# Changes to be committed:
+#   (use "git reset HEAD <file>..." to unstage)
+#
+#       new file:   Documentation/RelNotes/1.8.2.2.txt</code></pre>
+                    </section>
+
+                    <section data-state="alert">
+                        <h2>Git Reset --hard</h2>
+                        <pre><code class="bash">$ git status
+# On branch master
+nothing to commit (working directory clean)</code></pre>
+                        <pre><code class="bash">$ git log --oneline --no-merges
+3e7bb5d Start preparing for 1.8.2.2
+3d88f83 Update draft release notes to 1.8.3
+7f49036 zlib: fix compilation failures with Sun C Compilaer</code></pre>
+                        <pre><code class="bash">$ git reset --hard HEAD~1
+$ git log --oneline --no-merges
+3d88f83 Update draft release notes to 1.8.3
+7f49036 zlib: fix compilation failures with Sun C Compilaer</code></pre>
+                        <pre><code class="bash">$ git status
+# On branch master
+# Your branch is ahead of 'origin/master' by 56 commits.
+#
+nothing to commit (working directory clean)</code></pre>
+                    </section>
+
+                    <section>
+                        <h2>Git Revert</h2>
+                        <ul>
+                            <li><code>git reset</code> modifies history, which is a dangerous thing</li>
+                            <li><code>git revert</code> undoes a commit without destroying history</li>
+                            <li>It generates a new commit which undoes the prior commit</li>
+                        </ul>
+                        <pre><code status="bash">$ git log --oneline
+0e356b9 Committing main.cpp
+0edeab9 Variable rename
+$ git revert 0e356b9
+$ git log --oneline
+e60a298 Revert "Committing main.cpp"
+0e356b9 Committing main.cpp
+0edeab9 Variable rename</code></pre>
+                    </section>
+                </section>
+                <!--Branching-->
+                <section>
+                    <section>
+                        <h2>Concurrent Development Branches</h2>
+                        <ul>
+                            <li>One of the places where git shines is branches</li>
+                            <li>Branching allows for experimentation and concurrent development without polluting the main branch</li>
+                            <li>Every repo gets a branch for free, <em>master</em></li>
+                            <li>The name is immaterial; you could rename it to trunk if you're more comfortable with that terminology</li>
+                        </ul>
+                    </section>
+
+                    <section>
+                        <h2>Which Branches Are Available</h2>
+                        <pre><code class="bash">$ git branch</code></pre>
+                        <pre><code class="bash">  maint
+* master
+  next</code></pre>
+                        <ul>
+                            <li>The <code>*</code> represents the branch you are currently on.</li>
+                            <li>To switch to a branch, you use <code class="bash">git checkout branch</code></li>
+                        </ul>
+                    </section>
+
+                    <section>
+                        <h2>Creating branches</h2>
+                        <ul>
+                            <li>Create a new branch from the current branch with <pre><code class="bash">git branch new_branch</code></pre></li>
+                            <li>Create a new branch from a specific commit with <pre><code class="bash">git branch new_branch SHA</code></pre></li>
+                            <li>Using a similar syntax, you can create and checkout the new branch with <pre><code>git checkout -b new_branch</code></pre></li>
+                        </ul>
+                    </section>
+
+                    <section>
+                        <h2>Deleting Branches</h2>
+                        <ul>
+                            <li>First switch to another branch</li>
+                            <li>git branch -d branch_to_delete</li>
+                            <li>If the branch hasn't been fully merged, you may receive an error.</li>
+                            <li>If you're sure you want to delete it, replace the <code class="bash">-d</code> with <code class="bash">-D</code> as git reminds you</li>
+                        </ul>
+                        <pre><code class="bash">error: The branch 'next' is not fully merged.
+If you are sure you want to delete it, run 'git branch -D next'.</code></pre>
+                    </section>
+
+                    <section>
+                        <h2>A Couple More Commands</h2>
+                        <ul>
+                            <li>If you need to rename the branch, you can do <pre><code class="bash">git branch -m old_branch new_branch</code></pre></li>
+                            <li>If you want to find out which branches contain a certain commit, you can <pre><code class="bash">git branch --contains SHA</code></pre></li>
+                        </ul>
+                    </section>
+                </section>
+                <!--Merging-->
+                <section>
+                    <section>
+                        <h2>Merging Branches</h2>
+                        <ul>
+                            <li>Once you have finished work on a feature branch, you'll want to bring it back into the main developmet line.</li>
+                            <li>This is known as merging, and is, appropriately, accomplished with the <code class="bash">git merge</code> command.</li>
+                        </ul>
+                    </section> 
+
+                    <section>
+                        <h2>Automatic Merges</h2> 
+                        <ul>
+                            <li>Git is quite intelligent about merging branches</li>
+                            <li>Whenever possible, git will automatically apply the appropriate changesets</li>
+                        </ul>
+                        <pre><code class="bash">$ git merge feature
+Updating 9f61e79..a9fb92e
+Fast-forward
+ git-repack.sh |    8 --------
+  1 file changed, 8 deletions(-)</code></pre>
+                    </section>
+
+                    <section>
+                        <h2>Merge Conflicts</h2>
+                        <pre><code class="bash">$ git merge next
+Auto-merging revision.c
+Auto-merging log-tree.c
+Auto-merging builtin/blame.c
+Auto-merging builtin/add.c
+CONFLICT (content): Merge conflict in builtin/add.c
+Automatic merge failed; fix conflicts and then commit the result.
+
+git status
+# On branch master
+#
+# Changes to be committed:
+#
+#       modified:   Documentation/blame-options.txt
+#       ...snip...
+#       modified:   t/t8003-blame-corner-cases.sh
+#
+# Unmerged paths:
+#   (use "git add/rm <file>..." as appropriate to mark resolution)
+#
+#       both modified:      builtin/add.c
+#</code></pre>
+                    </section>
+
+                    <section>
+                        <h2>Conflict Markers</h2> 
+                        <pre><code class="diff">
+<<<<<<< HEAD
+=======
+static int directory_given(int argc, const char **argv)
+{
+   struct stat st;
+
+   while (argc--) {
+      if (!lstat(*argv, &st) && S_ISDIR(st.st_mode))
+         return 1;
+      argv++;
+   }
+   return 0;
+}
+>>>>>>> next</code></pre>
+                    </section>
+
+                    <section>
+                        <h2>Resolving Conflicts</h2>
+                        <ul>
+                            <li>Once you have resolved the merge conflict, stage the files in conflict.</li>
+                            <li>Commit the changes.  This will give you a commit buffer with a pre-defined message</li>
+                        </ul>
+                        <pre><code class="bash">commit 9f61e793b0de89c8dc915cbd1f05eab60221d170
+Merge: 562af5b 9260d39
+Author: Matthew M. Keeler <keelerm84@gmail.com>
+Date:   Tue Apr 23 18:54:17 2013 -0500
+
+   Merge branch 'next'
+
+       Conflicts:
+               builtin/add.c</code></pre>
+                    </section>
+                </section>
+                <!--Demo-->
+                <section>
+                    <h1>All Together Now</h1> 
+                </section>
+                <!--Resources/Questions-->
+                <section>
+                    <h2>Resources</h2>
+                    <ul>
+                        <li><a href="http://git-scm.com/">Git SCM</a></li>
+                        <li><a href="http://git-scm.com/book">Pro Git (http://git-scm.com/book)</a></li>
+                        <li><a href="http://www.atlassian.com/git/">Git Tutorials At Atlassian</a></li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h1>Questions?</h1>
+                </section>
+            </div>
+        </div>
+
+        <script src="lib/js/head.min.js"></script>
+        <script src="js/reveal.min.js"></script>
+
+        <script>
+
+            // Full list of configuration options available here:
+            // https://github.com/hakimel/reveal.js#configuration
+            Reveal.initialize({
+                controls: true,
+                progress: true,
+                history: true,
+                center: true,
+                rollingLinks: false,
+
+                theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+                transition: Reveal.getQueryHash().transition || 'cube', // default/cube/page/concave/zoom/linear/fade/none
+
+                // Optional libraries used to extend on reveal.js
+                dependencies: [
+                    { src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+                    { src: 'plugin/markdown/showdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+                    { src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+                    { src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+                    { src: 'plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+                    { src: 'plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+                ]
+            });
+
+        </script>
+
+    </body>
+</html>
